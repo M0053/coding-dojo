@@ -29,44 +29,43 @@ struct life {
 
 struct life readGameFile();
 void printState(struct life *game);
+struct life newLife(int rows, int cols, int generation);
+void freeLife(struct life *game);
 
 int main() {
     struct life game = readGameFile();
     printState(&game);
-    //clean up game 
-    for (int i = 0; i < game.numRows; i++) {
-        free(game.grid[i]);
-    }
-    free(game.grid);
-    return 0;
+    freeLife(&game);
 }
 
 struct life readGameFile() {
     FILE *inFile;
     char line[MAX_LINE_LENGTH];
     int lineCount = 0;
+
     struct life game;
+    int rows;
+    int cols;
+    int generation;
+
     char *token;
 
     inFile = fopen("lifefile", "r");
 
-    fgets(line,MAX_LINE_LENGTH,inFile); /* Generation */
+    /* Generation */
+    fgets(line,MAX_LINE_LENGTH,inFile);     
     token = strtok(line, " ");
     token = strtok(NULL, " ");
-    game.generation = atoi(token);
-    
-    
+    generation = atoi(token);
+        
     /* get # of rows and columns */
     fgets(line,MAX_LINE_LENGTH,inFile);
     token = strtok(line, " ");
-    game.numRows = atoi(token);
+    rows = atoi(token);
     token = strtok(NULL, " ");
-    game.numCols = atoi(token);
+    cols = atoi(token);
 
-    game.grid = (char**)malloc(game.numRows * sizeof(char*));
-    for (int i = 0; i < game.numRows; i++) {
-        game.grid[i] = (char*)malloc(game.numCols * sizeof(char));
-    }
+    game = newLife(rows, cols, generation);
 
     while(fgets(line,MAX_LINE_LENGTH,inFile)) {
         for (int i=0; i < strlen(line) - 1; i++) {
@@ -94,4 +93,27 @@ void printState(struct life *gamePtr) {
         printf("\n");
     }
     printf("\n");
+}
+
+
+struct life newLife(int rows, int cols, int generation) {
+    struct life game;
+    game.generation = generation;
+    game.numRows = rows;
+    game.numCols = cols;
+
+    game.grid = (char**)malloc(game.numRows * sizeof(char*));
+    for (int i = 0; i < game.numRows; i++) {
+        game.grid[i] = (char*)malloc(game.numCols * sizeof(char));
+    }
+
+    return game;
+}
+
+
+void freeLife(struct life *game) {
+    for (int i = 0; i < game->numRows; i++) {
+        free(game->grid[i]);
+    }
+    free(game->grid);
 }
