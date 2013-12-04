@@ -23,6 +23,7 @@ const int MAX_LINE_LENGTH = 100;
 struct life {
     int numRows;
     int numCols;
+    int generation;
     char **grid;
 };
 
@@ -50,6 +51,11 @@ struct life readGameFile() {
     inFile = fopen("lifefile", "r");
 
     fgets(line,MAX_LINE_LENGTH,inFile); /* Generation */
+    token = strtok(line, " ");
+    token = strtok(NULL, " ");
+    game.generation = atoi(token);
+    
+    
     /* get # of rows and columns */
     fgets(line,MAX_LINE_LENGTH,inFile);
     token = strtok(line, " ");
@@ -80,6 +86,7 @@ struct life readGameFile() {
 }
 
 void printState(struct life *gamePtr) {
+    printf("Generation %d:\n", gamePtr->generation); 
     for (int i = 0; i < gamePtr->numRows; i++) {
         for (int j = 0; j < gamePtr->numCols; j++) {
             printf("%d ", gamePtr->grid[i][j]);
