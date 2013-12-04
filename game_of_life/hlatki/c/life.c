@@ -27,11 +27,11 @@ struct life {
 };
 
 struct life readGameFile();
-void printState(struct life game);
+void printState(struct life *game);
 
 int main() {
     struct life game = readGameFile();
-    printState(game);
+    printState(&game);
     //clean up game 
     for (int i = 0; i < game.numRows; i++) {
         free(game.grid[i]);
@@ -79,10 +79,10 @@ struct life readGameFile() {
     return game;
 }
 
-void printState(struct life game) {
-    for (int i = 0; i < game.numRows; i++) {
-        for (int j = 0; j < game.numCols; j++) {
-            printf("%d ", game.grid[i][j]);
+void printState(struct life *gamePtr) {
+    for (int i = 0; i < gamePtr->numRows; i++) {
+        for (int j = 0; j < gamePtr->numCols; j++) {
+            printf("%d ", gamePtr->grid[i][j]);
         }
         printf("\n");
     }
