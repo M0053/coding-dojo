@@ -16,28 +16,35 @@ Generation 1:
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 
 const int MAX_LINE_LENGTH = 100;
 
-char **readGameFile(int *rows, int *cols);
-void printBoard(char **board);
-
-int main() {
+struct life {
     int numRows;
     int numCols;
-    char **board = readGameFile(&numRows, &numCols);
+    char **grid;
+};
 
-    for (int i=0; i<numRows; i++) {
-        free(board[i]);
+struct life readGameFile();
+void printState(struct life game);
+
+int main() {
+    struct life game = readGameFile();
+    printState(game);
+    //clean up game 
+    for (int i = 0; i < game.numRows; i++) {
+        free(game.grid[i]);
     }
-    free(board);
+    free(game.grid);
     return 0;
 }
 
-char **readGameFile(int *rows, int *cols) {
+struct life readGameFile() {
     FILE *inFile;
     char line[MAX_LINE_LENGTH];
-    char **board;
+    int lineCount = 0;
+    struct life game;
     char *token;
 
     inFile = fopen("lifefile", "r");
@@ -46,30 +53,38 @@ char **readGameFile(int *rows, int *cols) {
     /* get # of rows and columns */
     fgets(line,MAX_LINE_LENGTH,inFile);
     token = strtok(line, " ");
-    *rows = atoi(token);
+    game.numRows = atoi(token);
     token = strtok(NULL, " ");
-    *cols = atoi(token);
+    game.numCols = atoi(token);
 
-    board = (char**)malloc(*rows * sizeof(char*));
-    for (int i=0; i<*rows; i++) {
-        board[i] = (char*)malloc(*cols * sizeof(char));
+    game.grid = (char**)malloc(game.numRows * sizeof(char*));
+    for (int i = 0; i < game.numRows; i++) {
+        game.grid[i] = (char*)malloc(game.numCols * sizeof(char));
     }
 
     while(fgets(line,MAX_LINE_LENGTH,inFile)) {
         for (int i=0; i < strlen(line) - 1; i++) {
             if (line[i] == '*') {
-                printf("1 ");
+                game.grid[lineCount][i] = 1;
             } else if (line[i] == '.') {
-                printf("0 ");
-
+                game.grid[lineCount][i] = 0;
             } else {
                 printf("oops, invalid input\n");
             }
         }
+        lineCount++;
     }
     
     fclose(inFile);
-    return board;
+    return game;
 }
 
-
+void printState(struct life game) {
+    for (int i = 0; i < game.numRows; i++) {
+        for (int j = 0; j < game.numCols; j++) {
+            printf("%d ", game.grid[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
