@@ -19,6 +19,9 @@ Generation 1:
 #include <assert.h>
 
 const int MAX_LINE_LENGTH = 100;
+const int NUM_LIVE_NEIGHBORS_FOR_NEW_LIFE = 3;
+const int DEATH_BY_LONLINESS = 2;
+const int DEATH_BY_OVERCROWDING = 3;
 
 struct life {
     int numRows;
@@ -31,11 +34,17 @@ struct life readGameFile();
 void printState(struct life *game);
 struct life newLife(int rows, int cols, int generation);
 void freeLife(struct life *game);
+struct life nextGen(struct life *game);
+int numberOfLivingNeighbors(struct life *g, int row, int col);
 
 int main() {
+
     struct life game = readGameFile();
     printState(&game);
+    struct life nGen = nextGen(&game);
+    printState(&nGen);
     freeLife(&game);
+    freeLife(&nGen);
 }
 
 struct life readGameFile() {
@@ -116,4 +125,48 @@ void freeLife(struct life *game) {
         free(game->grid[i]);
     }
     free(game->grid);
+}
+
+struct life nextGen(struct life *game) {
+    struct life newGen = newLife(game->numRows, game->numCols, ++game->generation);
+   
+    /* iterate over current generation */
+    for (int i = 0; i < game->numRows; i++) {
+        for (int j = 0; j < game->numCols; j++) {
+            int alive = game->grid[i][j];
+            int nxtGen = game->grid[i][j];
+            int numLiveNeighbors = numberOfLivingNeighbors(game, i, j);
+            if (alive) {
+                if ( (numLiveNeighbors < DEATH_BY_LONLINESS) ||  (numLiveNeighbors > DEATH_BY_OVERCROWDING) )  {
+                    nxtGen = 0;
+                } else {
+                    nxtGen = 1; 
+                }
+            } else { //cell is dead
+                if (numLiveNeighbors ==  NUM_LIVE_NEIGHBORS_FOR_NEW_LIFE) {
+                    nxtGen = 1;
+                }
+            }
+            newGen.grid[i][j] = nxtGen;
+        }
+    }
+    return newGen;
+}
+
+/* note that our world is *not* a torus */
+int numberOfLivingNeighbors(struct life *g, int row, int col) {
+    int sum = 0;
+    int maxRow = row + 1;
+    int minRow = row - 1;
+    int maxCol = col + 1;
+    int minCol = col - 1;
+
+    for (int i = minRow; i <= maxRow; i++) {
+        for (int j = minCol; j <= maxCol; j++) {
+            /*  check that neighbor isn't out of bounds, or isn't the cell whose neighbors are being tallied */
+            if ( ((i >= 0) && (i < g->numRows)) && ((j >= 0) && (j < g->numCols)) && ((i != row) || (j != col)) )
+                sum += g->grid[i][j];
+        }
+    }
+    return sum; 
 }
